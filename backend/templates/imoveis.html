@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h2>Lista de Imóveis</h2>
+
+{% for imovel in imoveis %}
+    <h3>{{ imovel.titulo }} - {{ imovel.valor }}</h3>
+    <p>{{ imovel.descricao }}</p>
+{% endfor %}
+{% endblock %}

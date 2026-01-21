@@ -1,8 +1,10 @@
 import sqlite3
+from flask import g
 
-DB_NAME = "sistema_imobiliario.db"
+DATABASE = "sistema_imobiliario.db"
 
-def get_connection():
-    conn = sqlite3.connect(DB_NAME)
-    conn.row_factory = sqlite3.Row
-    return conn
+def get_db():
+    if "db" not in g:
+        g.db = sqlite3.connect(DATABASE)
+        g.db.row_factory = sqlite3.Row
+    return g.db

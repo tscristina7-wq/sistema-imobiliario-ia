@@ -1,11 +1,71 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <title>Sistema Imobiliário IA</title>
-</head>
-<body>
-  <h1>Sistema Imobiliário IA 🚀</h1>
-  <p>Projeto iniciado do zero.</p>
-</body>
-</html>
+from flask import Blueprint, request, jsonify
+from database.db import get_db
+import os
+import uuid
+
+imoveis_bp = Blueprint("imoveis", __name__)
+
+@imoveis_bp.route("/", methods=["GET"])
+def listar():
+    db = get_db()
+    imoveis = db.execute("SELECT * FROM imoveis").fetchall()
+    return jsonify([dict(i) for i in imoveis])
+
+@imoveis_bp.route("/novo", methods=["POST"])
+def novo():
+    data = request.form
+    db = get_db()
+
+    cursor = db.execute("""
+        INSERT INTO imoveis (titulo, finalidade, tipo, bairro, valor, descricao)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (
+        data["titulo"],
+        data["finalidade"],
+        data["tipo"],
+        data["bairro"],
+        data["valor"],
+        data["descricao"]
+    ))
+
+    imovel_id = cursor.lastrowid
+
+    fotos = request.files.getlist("fotos")
+    for foto in fotos:
+        nome = f"{uuid.uuid4().hex}_{foto.filename}"
+        caminho = os.path.join("uploads", nome)
+        foto.save(caminho)
+
+        db.execute(
+            "INSERT INTO fotos (imovel_id, arquivo) VALUES (?, ?)",
+            (imovel_id, nome)
+        )
+
+    db.commit()
+    return {"status": "Imóvel cadastrado com sucesso"}
+
+@imoveis_bp.route("/listar", methods=["GET"])
+def listar_com_fotos():
+    db = get_db()
+    imoveis = db.execute("SELECT * FROM imoveis").fetchall()
+
+    resultado = []
+
+    for i in imoveis:
+        fotos = db.execute(
+            "SELECT arquivo FROM fotos WHERE imovel_id = ?",
+            (i["id"],)
+        ).fetchall()
+
+        resultado.append({
+            "id": i["id"],
+            "titulo": i["titulo"],
+            "finalidade": i["finalidade"],
+            "tipo": i["tipo"],
+            "bairro": i["bairro"],
+            "valor": i["valor"],
+            "descricao": i["descricao"],
+            "fotos": [f["arquivo"] for f in fotos]
+        })
+
+    return jsonify(resultado)

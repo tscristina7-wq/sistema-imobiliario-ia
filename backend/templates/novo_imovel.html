@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h1>Novo Imóvel</h1>
+
+<form method="POST" enctype="multipart/form-data">
+
+    <label>Título</label>
+    <input type="text" name="titulo" required>
+
+    <label>Valor</label>
+    <input type="number" name="valor" required>
+
+    <label>Destino</label>
+    <select name="destino" required>
+        <option value="venda">Venda</option>
+        <option value="aluguel">Aluguel</option>
+        <option value="ambos">Venda e Aluguel</option>
+    </select>
+
+    <label>Descrição</label>
+    <textarea name="descricao"></textarea>
+
+    <label>Fotos</label>
+    <input type="file" name="fotos" multiple>
+
+    <button type="submit">Salvar</button>
+</form>
+
+{% endblock %}
